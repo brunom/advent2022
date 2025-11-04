@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO.MemoryMappedFiles;
+using System.Numerics;
 using System.Text;
 
 public class Day11
@@ -8,7 +9,7 @@ public class Day11
     [Fact]
     public void Test1()
     {
-        var monkeysExample = new (int inspections, List<int> levels, Func<int, int> operation, int test, int m1, int m2)[] {
+        var monkeysExample = new (long inspections, List<long> levels, Func<long, long> operation, int test, int m1, int m2)[] {
             (
                 0,
                 [ 79, 98, ],
@@ -34,7 +35,7 @@ public class Day11
                 17, 0, 1
             ),
         };
-        var monkeys = new (int inspections, List<int> levels, Func<int, int> operation, int test, int m1, int m2)[] {
+        var monkeysInput = new (long inspections, List<long> levels, Func<long, long> operation, int test, int m1, int m2)[] {
             (
                 0,
                 [ 57, ],
@@ -100,16 +101,23 @@ public class Day11
                 0
             ),
         };
+        var monkeys = monkeysInput;
+
+        long mod = monkeys.Select(m => m.test).Aggregate((a, b) => a * b);
         void Turn(int iMonkey)
         {
             for (int iLevel = 0; iLevel < monkeys[iMonkey].levels.Count; ++iLevel)
             {
-                int level = monkeys[iMonkey].levels[iLevel];
+                long level = monkeys[iMonkey].levels[iLevel];
                 monkeys[iMonkey].inspections += 1;
                 level = monkeys[iMonkey].operation(level);
-                level = level / 3;
-                int iNextMonkey = monkeys[iMonkey].m1;
-                if (level % monkeys[iMonkey].test != 0)
+                level = level % mod;
+                int iNextMonkey;
+                if (level % monkeys[iMonkey].test == 0)
+                {
+                    iNextMonkey = monkeys[iMonkey].m1;
+                }
+                else
                 {
                     iNextMonkey = monkeys[iMonkey].m2;
                 }
@@ -124,11 +132,12 @@ public class Day11
                 Turn(iMonkey);
             }
         }
-        for (int iRound = 0; iRound < 20; iRound++)
+        for (int iRound = 0; iRound < 10000; iRound++)
         {
             Round();
         }
-        int business = monkeys.Select(m => m.inspections).OrderDescending().Take(2).Aggregate((a, b) => a * b);
+        long business = monkeys.Select(m => m.inspections).OrderDescending().Take(2).Aggregate((a, b) => a * b);
+
         Assert.Equal(121450, business);
     }
 }
